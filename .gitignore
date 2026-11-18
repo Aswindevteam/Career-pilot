@@ -1,0 +1,9 @@
+node_modules/
+backend/browser-profile/
+backend/uploads/resumes/*.pdf
+backend/screenshots/*.png
+backend/screenshots/*.txt
+backend/screenshots/*.json
+backend/.env
+.DS_Store
+*.log

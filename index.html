@@ -1,0 +1,303 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="CareerPilot — your free AI job-search co-pilot." />
+  <title>CareerPilot — Apply smarter, for free</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <a class="brand" href="#dashboard"><span class="brand-mark">cp</span><span>CareerPilot</span></a>
+      <nav class="side-nav" aria-label="Main navigation">
+        <a class="active" data-page="dashboard" href="#"><i>⌂</i> Dashboard</a>
+        <a data-page="matches" href="#"><i>✦</i> Job matches <b>12</b></a>
+        <a data-page="applications" href="#"><i>▣</i> Applications</a>
+        <a data-page="resume" href="#"><i>▤</i> My résumé</a>
+        <a data-page="profile" href="#"><i>◎</i> Profile</a>
+        <a data-page="admin" href="#"><i>⚙</i> Admin <b id="admin-nav-count">0</b></a>
+      </nav>
+      <div class="profile-card">
+        <div class="avatar">--</div><div><strong>—</strong><small>Profile 0% complete</small></div>
+        <div class="progress"><span></span></div>
+        <button class="plain-button" data-action="complete-profile">Complete profile →</button>
+      </div>
+      <p class="free-note">Free for every job seeker.<br /><span>No subscription. Ever.</span></p>
+    </aside>
+
+    <main>
+      <header class="topbar"><button class="mobile-menu" aria-label="Toggle navigation">☰</button><div class="search"><span>⌕</span><input aria-label="Search jobs" placeholder="Search jobs, companies or skills" /></div><div class="top-actions"><button class="icon-button" aria-label="Notifications">♧<b></b></button><button class="icon-button" id="logout-btn" aria-label="Logout" title="Logout">Logout ⎋</button></div></header>
+      <section class="content" id="dashboard">
+
+        <!-- Hero -->
+        <div class="db-hero">
+          <div class="db-hero-left">
+            <p class="overline" id="db-date"></p>
+            <h1 class="db-greeting" id="db-greeting">Good morning <span>��</span></h1>
+            <p class="db-sub">Here's your job-search momentum for today.</p>
+          </div>
+          <div class="db-hero-right">
+            <button class="primary" data-action="find-jobs">Find new matches <span>→</span></button>
+            <button class="outline" id="start-autoapply">Start Auto-Apply <span>→</span></button>
+          </div>
+        </div>
+
+        <!-- KPI strip -->
+        <div class="db-kpi-strip">
+          <div class="db-kpi"><span class="db-kpi-icon" style="background:var(--purple)">⌁</span><div><strong id="stat-matches">0</strong><span>Matches</span></div></div>
+          <div class="db-kpi-sep"></div>
+          <div class="db-kpi"><span class="db-kpi-icon" style="background:var(--peach)">↗</span><div><strong id="stat-applied">0</strong><span>Applied</span></div></div>
+          <div class="db-kpi-sep"></div>
+          <div class="db-kpi"><span class="db-kpi-icon" style="background:var(--mint)">◎</span><div><strong id="stat-interviews">0</strong><span>Interviews</span></div></div>
+          <div class="db-kpi-sep"></div>
+          <div class="db-kpi"><span class="db-kpi-icon" style="background:#ffefc0">★</span><div><strong id="stat-offers">0</strong><span>Offers</span></div></div>
+          <div class="db-kpi-sep"></div>
+          <div class="db-kpi"><span class="db-kpi-icon" style="background:#ffe0dc">✉</span><div><strong id="stat-emails">0</strong><span>HR emails</span></div></div>
+        </div>
+
+        <!-- Main grid -->
+        <div class="db-grid">
+
+          <!-- Bar chart: applications last 14 days -->
+          <div class="db-card db-card--wide">
+            <div class="db-card-header">
+              <div><p class="overline" style="margin:0">ACTIVITY</p><h3>Applications — last 14 days</h3></div>
+              <span class="db-total-badge" id="db-total-badge">0 total</span>
+            </div>
+            <div class="db-chart-wrap">
+              <svg id="db-bar-chart" class="db-bar-chart" viewBox="0 0 700 120" preserveAspectRatio="none" aria-hidden="true"></svg>
+              <div class="db-chart-labels" id="db-chart-labels"></div>
+            </div>
+          </div>
+
+          <!-- Pipeline funnel -->
+          <div class="db-card">
+            <div class="db-card-header"><div><p class="overline" style="margin:0">PIPELINE</p><h3>Application funnel</h3></div></div>
+            <div class="db-funnel" id="db-funnel">
+              <div class="db-funnel-row"><span class="db-funnel-label">Applied</span><div class="db-funnel-bar-wrap"><div class="db-funnel-bar" id="fn-applied-bar" style="width:100%;background:#638e71"></div></div><span class="db-funnel-val" id="fn-applied-n">0</span></div>
+              <div class="db-funnel-row"><span class="db-funnel-label">Interview</span><div class="db-funnel-bar-wrap"><div class="db-funnel-bar" id="fn-interview-bar" style="width:0%;background:#7b6fd4"></div></div><span class="db-funnel-val" id="fn-interview-n">0</span></div>
+              <div class="db-funnel-row"><span class="db-funnel-label">Offer</span><div class="db-funnel-bar-wrap"><div class="db-funnel-bar" id="fn-offer-bar" style="width:0%;background:#d9a94c"></div></div><span class="db-funnel-val" id="fn-offer-n">0</span></div>
+              <div class="db-funnel-row"><span class="db-funnel-label">Rejected</span><div class="db-funnel-bar-wrap"><div class="db-funnel-bar" id="fn-rejected-bar" style="width:0%;background:#d96e61"></div></div><span class="db-funnel-val" id="fn-rejected-n">0</span></div>
+            </div>
+          </div>
+
+          <!-- Roles I'm targeting -->
+          <div class="db-card">
+            <div class="db-card-header">
+              <div><p class="overline" style="margin:0">JOB PROFILES</p><h3>Roles you're targeting</h3></div>
+              <button class="link-button" data-page="profile" data-action="nav-page">Edit →</button>
+            </div>
+            <div id="db-roles-list" class="db-roles-list"><p class="db-empty">No job profiles yet.</p></div>
+          </div>
+
+          <!-- Applications by portal -->
+          <div class="db-card">
+            <div class="db-card-header"><div><p class="overline" style="margin:0">PORTALS</p><h3>Applications by portal</h3></div></div>
+            <div id="db-portal-breakdown" class="db-portal-breakdown"><p class="db-empty">No applications yet.</p></div>
+          </div>
+
+          <!-- Portal × Role heatmap -->
+          <div class="db-card db-card--wide">
+            <div class="db-card-header"><div><p class="overline" style="margin:0">COVERAGE</p><h3>Applied roles per portal</h3></div></div>
+            <div class="db-heatmap-wrap" id="db-heatmap"><p class="db-empty">Will populate once you have applications.</p></div>
+          </div>
+
+          <!-- Auto-apply panel — portals rendered dynamically by JS -->
+          <div class="db-card db-card--auto" id="aa-card">
+            <div class="db-card-header">
+              <div><p class="overline" style="margin:0">AUTO-APPLY</p><h3><span id="auto-status" style="color:#638e71">OFF</span></h3></div>
+              <div style="display:flex;gap:8px;align-items:center">
+                <span style="font-size:11px;color:var(--muted)">Cap <strong id="auto-cap">0</strong> · Min <strong id="auto-min">0</strong>%</span>
+                <button class="aa-stop-all-btn" id="aa-stop-all" style="display:none" title="Stop all running portals">◼ Stop all</button>
+              </div>
+            </div>
+            <!-- per-portal rows injected here -->
+            <div id="aa-portals"></div>
+            <small id="auto-status-msg" style="display:block;font-size:11px;color:var(--muted);margin-top:8px;min-height:14px"></small>
+          </div>
+
+          <!-- Top job matches -->
+          <div class="db-card db-card--wide" id="matches">
+            <div class="db-card-header">
+              <div><p class="overline" style="margin:0">TOP PICKS</p><h3>Strongest matches</h3></div>
+              <button class="link-button" data-action="find-jobs">Refresh →</button>
+            </div>
+            <div class="match-list" id="match-list"><div class="empty-card">No matches yet — click Refresh.</div></div>
+          </div>
+
+        </div><!-- /db-grid -->
+
+        <!-- Application tracker kanban -->
+        <section class="tracker" id="applications" style="margin-top:32px">
+          <div class="section-title"><div><p class="overline">APPLICATION TRACKER</p><h2>Keep every opportunity moving</h2></div><button class="link-button" data-action="add-application">+ Add application</button></div>
+          <div class="kanban"></div>
+        </section>
+
+        <!-- Admin -->
+        <section class="admin-section" id="admin" style="margin-top:40px"><div class="section-title"><div><p class="overline">ADMIN</p><h2>Onboarded users</h2></div><button class="link-button" id="refresh-admin">Refresh</button></div><p>Total users: <strong id="admin-count">0</strong></p><div id="admin-users" class="admin-list"></div></section>
+
+        <!-- Activity log -->
+        <section class="activity-section" style="margin-top:40px"><div class="section-title"><div><p class="overline">ACTIVITY</p><h2>Live log</h2></div><button class="link-button" id="clear-log">Clear</button></div><div id="activity-log" class="activity-log"></div></section>
+
+      </section>
+
+      <!-- ═══ Profile page ═══ -->
+      <section id="profile-page" class="prof-page" style="display:none">
+        <div class="prof-header">
+          <div>
+            <p class="overline">SETTINGS</p>
+            <h1>Your profile</h1>
+            <p class="prof-sub">Keep this up to date for better job matches and faster auto-apply.</p>
+          </div>
+          <div class="prof-header-actions">
+            <button class="outline" id="prof-back">← Back</button>
+            <button class="primary" id="prof-save">Save profile <span>→</span></button>
+          </div>
+        </div>
+
+        <div class="prof-body">
+
+          <!-- Col 1 -->
+          <div class="prof-col">
+
+            <!-- Resume upload -->
+            <div class="prof-card">
+              <p class="overline" style="margin:0 0 4px">RÉSUMÉ</p>
+              <p class="prof-card-sub">Your CV is stored on the server — download, preview, or replace it any time.</p>
+
+              <!-- Stored file panel (hidden until a file exists) -->
+              <div class="resume-stored" id="resume-stored" style="display:none">
+                <div class="resume-stored-icon">▤</div>
+                <div class="resume-stored-info">
+                  <span class="resume-stored-name" id="resume-stored-name">resume.pdf</span>
+                  <span class="resume-stored-meta" id="resume-stored-meta"></span>
+                </div>
+                <div class="resume-stored-actions">
+                  <a class="rs-btn rs-preview" id="resume-preview-btn" href="#" target="_blank" title="Preview">👁 Preview</a>
+                  <a class="rs-btn rs-download" id="resume-download-btn" href="#" title="Download">↓ Download</a>
+                </div>
+              </div>
+
+              <!-- Drop zone (always shown; label changes when file stored) -->
+              <div class="resume-drop" id="resume-drop" style="margin-top:10px">
+                <div class="resume-drop-icon">↑</div>
+                <p class="resume-drop-label" id="resume-drop-label">Drop PDF / TXT here, or <label for="resume-file" class="resume-browse">browse</label></p>
+                <input type="file" id="resume-file" accept=".pdf,.txt" style="display:none" />
+                <p class="resume-drop-hint" id="resume-status">PDF or plain text · max 5 MB</p>
+              </div>
+
+              <!-- conflict banner -->
+              <div class="resume-conflict" id="resume-conflict" style="display:none">
+                <p class="resume-conflict-msg">Your profile already has data. What should we do?</p>
+                <div class="resume-conflict-actions">
+                  <button class="rc-btn rc-replace" id="rc-replace">Replace all</button>
+                  <button class="rc-btn rc-merge" id="rc-merge">Merge skills only</button>
+                  <button class="rc-btn rc-cancel" id="rc-cancel">Keep current</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Personal info -->
+            <div class="prof-card">
+              <p class="overline" style="margin:0 0 16px">PERSONAL INFO</p>
+              <div class="prof-field">
+                <label for="prof-name">Full name</label>
+                <input type="text" id="prof-name" placeholder="e.g. Aswin S." />
+              </div>
+            </div>
+
+            <!-- Job Profiles -->
+            <div class="prof-card">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+                <p class="overline" style="margin:0">JOB PROFILES</p>
+                <button class="jp-add-btn" id="jp-add">+ Add profile</button>
+              </div>
+              <p class="prof-card-sub">Each profile has its own role, skills and cities. Mark one <strong>Active</strong> for auto-apply.</p>
+              <div id="job-profiles-list"></div>
+            </div>
+
+            <!-- Auto-apply settings -->
+            <div class="prof-card">
+              <p class="overline" style="margin:0 0 16px">AUTO-APPLY SETTINGS</p>
+              <label class="toggle-label">
+                <input type="checkbox" id="prof-autoapply" class="toggle-check" />
+                <span class="toggle-track"><span class="toggle-thumb"></span></span>
+                Enable auto-apply
+              </label>
+              <div class="prof-two-col" style="margin-top:16px">
+                <div class="prof-field">
+                  <label for="prof-dailycap">Daily cap</label>
+                  <input type="number" id="prof-dailycap" placeholder="50" />
+                </div>
+                <div class="prof-field">
+                  <label for="prof-minmatch">Min match %</label>
+                  <input type="number" id="prof-minmatch" placeholder="75" />
+                </div>
+              </div>
+            </div>
+
+          </div><!-- /col1 -->
+
+          <!-- Col 2 -->
+          <div class="prof-col">
+            <div class="prof-card prof-card--full">
+              <p class="overline" style="margin:0 0 4px">JOB PORTAL CREDENTIALS</p>
+              <p class="prof-card-sub">Used by the auto-apply worker. Stored encrypted on your server.</p>
+              <div id="portal-creds"></div>
+            </div>
+          </div>
+
+        </div><!-- /prof-body -->
+
+        <div class="prof-footer">
+          <button class="primary" id="prof-save-bottom">Save profile <span>→</span></button>
+          <button class="outline" id="prof-back-bottom">← Back</button>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <dialog id="application-modal"><button class="close" aria-label="Close">×</button><div class="modal-content"><p class="overline">APPLICATION WORKSPACE</p><h2 id="modal-job">Prepare your application</h2><p>CareerPilot will tailor your résumé and draft an email. Nothing is submitted or sent without your final review.</p><div class="modal-steps"><div><span>1</span><b>Review job details</b><small>Confirm fit and requirements</small></div><div><span>2</span><b>Tailor résumé</b><small>Create a role-specific PDF</small></div><div><span>3</span><b>Draft application email</b><small>Review before sending</small></div></div><button class="primary full" data-action="tailor-resume">Create application materials <span>→</span></button><small class="safety">✓ You stay in control. CareerPilot never sends an application automatically.</small></div></dialog>
+  <dialog id="resume-modal"><button class="close" aria-label="Close">×</button><div class="modal-content"><p class="overline">RÉSUMÉ STUDIO</p><h2>What role are you applying for?</h2><label>Job description <textarea placeholder="Paste the job description here…"></textarea></label><label>Target role <input placeholder="e.g. Product Designer" /></label><button class="primary full" id="generate-resume">Generate tailored résumé <span>→</span></button><small class="safety">Your original résumé stays private and unchanged.</small></div></dialog>
+  <div id="login-page" class="login-page"><div class="login-card"><p class="overline">SIGN IN</p><h2>Welcome back</h2><label>Email <input type="email" id="login-email" placeholder="you@example.com" /></label><label>Password <input type="password" id="login-password" placeholder="••••••••" /></label><button class="primary full" id="login-submit">Sign in <span>→</span></button><button class="outline full" id="show-register" style="margin-top:8px">Create account <span>→</span></button><small class="safety">New here? Create an account.</small></div></div>
+  <div id="register-page" class="login-page" style="display:none"><div class="login-card login-card--wide"><p class="overline">CREATE ACCOUNT</p><h2>Join CareerPilot</h2>
+    <div class="reg-resume-zone" id="reg-resume-zone">
+      <div class="reg-resume-icon">▤</div>
+      <p class="reg-resume-label"><strong>Upload your résumé to auto-fill</strong><br/><span>We'll fill in your name, role and skills instantly</span></p>
+      <label for="reg-resume-file" class="reg-resume-btn">Choose PDF / TXT</label>
+      <input type="file" id="reg-resume-file" accept=".pdf,.txt" style="display:none" />
+      <p class="reg-resume-status" id="reg-resume-status"></p>
+    </div>
+    <div class="reg-divider"><span>or fill in manually</span></div>
+    <label>Email <input type="email" id="reg-email" placeholder="you@example.com" /></label>
+    <label>Full name <input type="text" id="reg-name" placeholder="Your name" /></label>
+    <label>Role <input type="text" id="reg-role" placeholder="e.g. Full Stack Developer" /></label>
+    <label>Password <input type="password" id="reg-password" placeholder="••••••••" /></label>
+    <label>Confirm password <input type="password" id="reg-confirm" placeholder="••••••••" /></label>
+    <button class="primary full" id="register-submit" style="margin-top:8px">Create account <span>→</span></button>
+    <button class="outline full" id="show-login" style="margin-top:8px">Back to sign in <span>→</span></button>
+  </div></div>
+  <div id="toast" role="status"></div>
+
+  <!-- Lightbox for fullscreen screenshot -->
+  <div id="aa-lightbox" class="aa-lightbox" style="display:none" role="dialog" aria-modal="true">
+    <div class="aa-lb-toolbar">
+      <span class="aa-lb-title" id="aa-lb-title">Auto-Apply — Live View</span>
+      <div style="display:flex;gap:10px;align-items:center">
+        <span class="aa-lb-status" id="aa-lb-status"></span>
+        <button class="aa-lb-close" id="aa-lb-close" title="Close (Esc)">✕</button>
+      </div>
+    </div>
+    <div class="aa-lb-body">
+      <img id="aa-lb-img" src="" alt="Live browser view" class="aa-lb-img" />
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

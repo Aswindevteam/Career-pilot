@@ -1,0 +1,19 @@
+version: '3.8'
+services:
+  mongo:
+    image: mongo:7
+    restart: unless-stopped
+    volumes: [mongo_data:/data/db]
+  backend:
+    build: ./backend
+    restart: unless-stopped
+    ports: ["4001:4001"]
+    environment:
+      - MONGO_URI=mongodb://mongo:27017/jobagent
+      - JWT_SECRET=${JWT_SECRET}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+      - GMAIL_USER=${GMAIL_USER}
+    depends_on: [mongo]
+volumes:
+  mongo_data:

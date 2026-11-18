@@ -1,0 +1,517 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CareerPilot</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --ink: #18251f; --muted: #738078; --line: #e3e8e2;
+      --bg: #f8f9f6; --lime: #d9fb63; --purple: #e8e3ff;
+      --peach: #ffdfd4; --mint: #d7f3df; --green: #638e71;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      width: 420px; min-height: 540px; max-height: 600px;
+      font: 13px 'DM Sans', sans-serif; color: var(--ink);
+      background: var(--bg); display: flex; flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* ── Shell ── */
+    .shell { display: flex; flex-direction: column; height: 600px; }
+
+    /* ── Sidebar ── */
+    .sidebar {
+      width: 100%; background: #fff; border-bottom: 1px solid var(--line);
+      display: flex; align-items: center; padding: 0 10px; gap: 2px;
+      flex-shrink: 0;
+    }
+    .brand {
+      display: flex; align-items: center; gap: 7px; color: var(--ink);
+      text-decoration: none; font: 800 15px Manrope, sans-serif; padding: 10px 8px;
+    }
+    .brand-mark {
+      width: 26px; height: 26px; display: grid; place-items: center;
+      border-radius: 8px; color: var(--ink); background: var(--lime);
+      font: 800 10px 'DM Sans';
+    }
+    .side-nav {
+      display: flex; gap: 2px; flex: 1; overflow-x: auto;
+      scrollbar-width: none;
+    }
+    .side-nav::-webkit-scrollbar { display: none; }
+    .side-nav a {
+      display: flex; align-items: center; gap: 5px; color: #556259;
+      text-decoration: none; padding: 7px 8px; border-radius: 7px;
+      font-weight: 600; font-size: 11px; white-space: nowrap;
+      cursor: pointer; border: none; background: none;
+      transition: background .15s, color .15s;
+    }
+    .side-nav a i { font-style: normal; font-size: 14px; }
+    .side-nav a .badge {
+      font-size: 9px; background: var(--lime); border-radius: 8px;
+      padding: 2px 5px; font-weight: 700; color: var(--ink);
+    }
+    .side-nav a.active, .side-nav a:hover {
+      background: #edf0eb; color: var(--ink);
+    }
+
+    /* ── Top bar (page-level) ── */
+    .topbar {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 16px; background: #fff; border-bottom: 1px solid var(--line);
+      flex-shrink: 0;
+    }
+    .topbar-title { font: 700 13px Manrope, sans-serif; }
+    .topbar-actions { display: flex; gap: 8px; align-items: center; }
+    .btn-xs {
+      border: 0; border-radius: 6px; padding: 5px 10px; font: 700 10px 'DM Sans';
+      cursor: pointer; display: inline-flex; align-items: center; gap: 5px;
+    }
+    .btn-xs.primary { background: var(--ink); color: #fff; }
+    .btn-xs.outline { background: transparent; border: 1px solid #889b8d; color: var(--ink); }
+    .btn-xs.danger { background: #fdecea; color: #c0392b; border: 1px solid #f5c6c2; }
+    .btn-xs:disabled { opacity: .5; cursor: default; }
+
+    /* ── Page content ── */
+    .pages { flex: 1; overflow-y: auto; }
+    .page { display: none; padding: 14px 16px; }
+    .page.active { display: block; }
+
+    /* ── KPI strip ── */
+    .kpi-strip {
+      display: flex; align-items: center; background: #fff;
+      border: 1px solid var(--line); border-radius: 12px; padding: 0 4px;
+      margin-bottom: 14px; overflow-x: auto;
+    }
+    .kpi { display: flex; align-items: center; gap: 8px; padding: 12px 10px; }
+    .kpi-icon { width: 30px; height: 30px; border-radius: 8px; display: grid; place-items: center; font-size: 14px; }
+    .kpi strong { font: 800 18px Manrope; display: block; line-height: 1; }
+    .kpi span { font-size: 9px; color: var(--muted); display: block; margin-top: 2px; }
+    .kpi-sep { width: 1px; height: 28px; background: var(--line); flex-shrink: 0; }
+
+    /* ── Auto-apply portals ── */
+    .aa-portal-row {
+      border: 1px solid var(--line); border-radius: 9px; padding: 10px 12px;
+      margin-bottom: 8px; background: #fff;
+    }
+    .aa-portal-header {
+      display: flex; align-items: center; justify-content: space-between; gap: 8px;
+    }
+    .aa-portal-name {
+      font-size: 12px; font-weight: 700; display: flex;
+      align-items: center; gap: 7px; text-transform: capitalize;
+    }
+    .aa-dot {
+      width: 7px; height: 7px; border-radius: 50%; background: #ccc; flex-shrink: 0;
+    }
+    .aa-dot.running { background: #638e71; animation: pulse 1.2s infinite; }
+    .aa-dot.done { background: #7b6fd4; }
+    .aa-dot.error { background: #d96e61; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+    .aa-portal-status { font-size: 10px; color: var(--muted); margin-top: 3px; }
+    .aa-actions { display: flex; gap: 5px; align-items: center; }
+    .aa-start { background: var(--ink); color: #fff; border: 0; border-radius: 6px; padding: 5px 10px; font: 700 10px 'DM Sans'; cursor: pointer; }
+    .aa-stop { background: #fdecea; color: #c0392b; border: 1px solid #f5c6c2; border-radius: 6px; padding: 5px 10px; font: 700 10px 'DM Sans'; cursor: pointer; display: none; }
+    .aa-log-btn { background: #f4f6f2; color: #4a5a51; border: 1px solid var(--line); border-radius: 6px; padding: 5px 8px; font: 700 10px 'DM Sans'; cursor: pointer; }
+    .aa-log-panel {
+      background: #0d1117; color: #58d68d; font: 10px/1.5 monospace;
+      padding: 8px 10px; border-radius: 7px; margin-top: 8px;
+      max-height: 100px; overflow-y: auto; display: none;
+    }
+    .aa-log-panel div { border-bottom: 1px solid #1a2a1a; padding: 1px 0; }
+    .aa-no-portal { font-size: 12px; color: var(--muted); padding: 10px 0; }
+    .aa-no-portal a { color: var(--green); font-weight: 700; cursor: pointer; }
+    .aa-card-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 10px;
+    }
+    .aa-card-header h4 { font: 700 13px Manrope; }
+    .aa-stop-all {
+      background: #fdecea; color: #c0392b; border: 1px solid #f5c6c2;
+      border-radius: 6px; padding: 5px 10px; font: 700 10px 'DM Sans';
+      cursor: pointer; display: none;
+    }
+
+    /* ── Job matches ── */
+    .job-card {
+      background: #fff; border: 1px solid var(--line); border-radius: 10px;
+      padding: 11px 13px; margin-bottom: 8px;
+      display: grid; grid-template-columns: 36px 1fr auto; gap: 10px; align-items: center;
+    }
+    .co-logo {
+      width: 36px; height: 36px; border-radius: 8px; display: grid;
+      place-items: center; color: #fff; font: 800 16px Manrope;
+      background: #a67f48;
+    }
+    .job-title { font: 700 12px 'DM Sans'; }
+    .job-meta { font-size: 10px; color: var(--muted); margin-top: 2px; }
+    .match-score {
+      background: #e8f7d0; color: #4e7e36; border-radius: 10px;
+      padding: 2px 6px; font-size: 9px; font-weight: 700;
+    }
+    .tags { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 5px; }
+    .tag { font-size: 9px; color: #607067; padding: 2px 5px; background: #f2f4f0; border-radius: 3px; }
+
+    /* ── Application tracker ── */
+    .kanban { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .kanban-col-title {
+      font-size: 9px; font-weight: 700; color: #65736a; text-transform: uppercase;
+      letter-spacing: .5px; margin-bottom: 6px;
+    }
+    .kanban-col-title span {
+      background: #dfe4dd; border-radius: 7px; padding: 2px 5px; margin-left: 3px;
+    }
+    .track-card {
+      background: #f8faf7; border: 1px solid var(--line); border-radius: 7px;
+      padding: 8px 10px; margin-bottom: 5px; font-size: 10px;
+    }
+    .track-card b { font-size: 11px; display: block; margin-bottom: 2px; }
+    .track-card small { color: var(--muted); font-size: 9px; }
+    .track-card.interview { border-left: 3px solid #76b582; }
+    .empty-card {
+      background: transparent; border: 1px dashed #cbd3cb; border-radius: 7px;
+      color: #829087; font-size: 10px; padding: 8px; text-align: center;
+    }
+
+    /* ── Profile page ── */
+    .prof-section { margin-bottom: 14px; }
+    .prof-section-title {
+      font-size: 9px; font-weight: 700; color: var(--muted); letter-spacing: 1px;
+      text-transform: uppercase; margin-bottom: 8px;
+    }
+    .prof-card {
+      background: #fff; border: 1px solid var(--line); border-radius: 10px;
+      padding: 12px 14px;
+    }
+    .prof-field { margin-bottom: 10px; }
+    .prof-field:last-child { margin-bottom: 0; }
+    .prof-field label {
+      font-size: 10px; font-weight: 700; color: #4a5a51; letter-spacing: .3px;
+      text-transform: uppercase; display: block; margin-bottom: 4px;
+    }
+    .prof-field input, .prof-field select {
+      width: 100%; height: 34px; padding: 0 10px; border: 1px solid #dbe1da;
+      border-radius: 7px; font: 12px 'DM Sans'; color: var(--ink);
+      outline: none; background: #fff;
+    }
+    .prof-field input:focus { border-color: var(--green); }
+    .prof-two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .toggle-label { display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 600; cursor: pointer; }
+    .toggle-check { display: none; }
+    .toggle-track { width: 32px; height: 18px; background: #d1d9d4; border-radius: 18px; position: relative; transition: background .2s; flex-shrink: 0; }
+    .toggle-thumb { width: 12px; height: 12px; background: #fff; border-radius: 50%; position: absolute; top: 3px; left: 3px; transition: left .2s; }
+    .toggle-check:checked + .toggle-track { background: var(--green); }
+    .toggle-check:checked + .toggle-track .toggle-thumb { left: 17px; }
+
+    .portal-row { border: 1px solid var(--line); border-radius: 8px; padding: 9px 11px; margin-bottom: 7px; }
+    .portal-row-header { display: flex; align-items: center; gap: 7px; font-size: 12px; font-weight: 700; margin-bottom: 8px; }
+    .portal-row-header input[type="checkbox"] { width: 14px; height: 14px; accent-color: var(--green); }
+    .portal-row-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+    .portal-row-fields input {
+      height: 32px; padding: 0 9px; border: 1px solid #dbe1da;
+      border-radius: 6px; font: 11px 'DM Sans'; width: 100%; outline: none;
+    }
+    .portal-row-fields input:focus { border-color: var(--green); }
+
+    /* ── Admin ── */
+    .admin-row {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 7px 10px; border: 1px solid var(--line); border-radius: 7px;
+      margin-bottom: 5px; background: #fff; font-size: 11px;
+    }
+    .admin-row button {
+      background: #fee; border: 1px solid #f99; border-radius: 5px;
+      padding: 3px 8px; cursor: pointer; color: #c33; font-size: 10px;
+    }
+
+    /* ── Login ── */
+    .login-wrap {
+      position: fixed; inset: 0; background: linear-gradient(135deg, #f6f7fb, #eef1f8);
+      z-index: 999; display: flex; align-items: center; justify-content: center;
+    }
+    .login-card {
+      background: #fff; padding: 24px; border-radius: 14px;
+      box-shadow: 0 10px 40px rgba(0,0,0,.08); width: 340px;
+    }
+    .login-card h2 { font: 800 22px Manrope; margin: 6px 0 14px; }
+    .login-card label { display: block; margin-bottom: 10px; font-size: 12px; color: #555; }
+    .login-card input {
+      width: 100%; padding: 9px 11px; margin-top: 4px; border: 1px solid #ddd;
+      border-radius: 7px; font: 12px 'DM Sans'; outline: none;
+    }
+    .login-card input:focus { border-color: var(--green); }
+    .login-card .btn-full { width: 100%; margin-top: 6px; padding: 11px; font: 700 12px 'DM Sans'; border: 0; border-radius: 8px; cursor: pointer; }
+    .login-card .btn-primary { background: var(--ink); color: #fff; }
+    .login-card .btn-outline { background: transparent; border: 1px solid #889b8d; color: var(--ink); margin-top: 6px; }
+
+    /* ── Toast ── */
+    #toast {
+      position: fixed; bottom: 10px; left: 50%; transform: translate(-50%, 10px);
+      opacity: 0; background: var(--ink); color: #fff; padding: 8px 14px;
+      border-radius: 16px; font-size: 11px; transition: .2s; z-index: 9999;
+      pointer-events: none;
+    }
+    #toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+    /* ── Section/card helpers ── */
+    .overline { font-size: 9px; letter-spacing: 1px; color: var(--muted); font-weight: 700; text-transform: uppercase; margin-bottom: 4px; }
+    .section-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+    .section-row h4 { font: 700 13px Manrope; }
+    .link-btn { background: none; border: 0; color: var(--green); font: 700 11px 'DM Sans'; cursor: pointer; }
+    .chip { background: #e8f7d0; color: #3f7136; padding: 2px 7px; border-radius: 10px; font-size: 10px; display: inline-flex; align-items: center; gap: 3px; }
+    .chip button { border: 0; background: none; cursor: pointer; font-size: 11px; color: #3f7136; padding: 0; }
+    .chip-row { display: flex; flex-wrap: wrap; gap: 4px; padding: 5px; border: 1px solid #dbe1da; border-radius: 7px; min-height: 30px; background: #fff; }
+    .chip-text-input { width: 100%; height: 28px; padding: 0 9px; border: 1px solid #dbe1da; border-radius: 7px; font: 11px 'DM Sans'; margin-top: 5px; outline: none; }
+    .chip-text-input:focus { border-color: var(--green); }
+
+    /* ── Auto-apply hero bar ── */
+    .aa-hero {
+      display: flex; align-items: center; justify-content: space-between;
+      background: #fff; border: 1px solid var(--line); border-radius: 10px;
+      padding: 10px 14px; margin-bottom: 12px; gap: 10px;
+    }
+    .aa-hero-status { font-size: 12px; font-weight: 700; }
+    .aa-hero-meta { font-size: 10px; color: var(--muted); margin-top: 2px; }
+
+    /* Funnel mini */
+    .funnel-row { display: grid; grid-template-columns: 60px 1fr 26px; align-items: center; gap: 8px; margin-bottom: 6px; }
+    .funnel-label { font-size: 10px; font-weight: 600; }
+    .funnel-bar-wrap { background: #f0f2ef; border-radius: 5px; height: 8px; overflow: hidden; }
+    .funnel-bar { height: 100%; border-radius: 5px; transition: width .4s; }
+    .funnel-val { font-size: 10px; font-weight: 700; text-align: right; }
+
+    /* Reg resume zone */
+    .reg-resume-zone {
+      border: 2px dashed #d0d9d0; border-radius: 10px; padding: 14px;
+      display: flex; flex-direction: column; align-items: center; text-align: center;
+      gap: 6px; background: #f8faf7; cursor: pointer; margin-bottom: 8px;
+    }
+    .reg-resume-zone:hover { border-color: var(--green); }
+    .reg-resume-zone.uploaded { border-color: var(--green); border-style: solid; background: #edf7ee; }
+    .reg-resume-btn { background: var(--ink); color: #fff; padding: 6px 14px; border-radius: 7px; font: 700 11px 'DM Sans'; cursor: pointer; border: 0; }
+    .reg-resume-status { font-size: 10px; color: var(--green); min-height: 14px; }
+    .reg-divider { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 10px; margin: 6px 0; }
+    .reg-divider::before, .reg-divider::after { content: ''; flex: 1; height: 1px; background: var(--line); }
+  </style>
+</head>
+<body>
+<div class="shell">
+
+  <!-- ── Top nav bar ── -->
+  <div class="sidebar">
+    <a class="brand" href="#"><span class="brand-mark">cp</span></a>
+    <nav class="side-nav" id="side-nav">
+      <a class="active" data-page="dashboard"><i>⌂</i> Dashboard</a>
+      <a data-page="matches"><i>✦</i> Matches</a>
+      <a data-page="applications"><i>▣</i> Applied</a>
+      <a data-page="resume"><i>▤</i> Résumé</a>
+      <a data-page="profile"><i>◎</i> Profile</a>
+      <a data-page="admin"><i>⚙</i> Admin</a>
+    </nav>
+    <button id="open-webapp" title="Open full web dashboard" style="
+      flex-shrink:0; border:0; background:var(--lime); color:var(--ink);
+      border-radius:7px; padding:5px 8px; font:700 10px 'DM Sans';
+      cursor:pointer; white-space:nowrap; margin-left:4px;
+    ">⤢</button>
+  </div>
+
+  <!-- ── Page area ── -->
+  <div class="pages" id="pages">
+
+    <!-- ════ DASHBOARD ════ -->
+    <div class="page active" id="page-dashboard">
+      <!-- KPI Strip -->
+      <div class="kpi-strip">
+        <div class="kpi">
+          <div class="kpi-icon" style="background:var(--purple)">⌁</div>
+          <div><strong id="kpi-matches">0</strong><span>Matches</span></div>
+        </div>
+        <div class="kpi-sep"></div>
+        <div class="kpi">
+          <div class="kpi-icon" style="background:var(--peach)">↗</div>
+          <div><strong id="kpi-applied">0</strong><span>Applied</span></div>
+        </div>
+        <div class="kpi-sep"></div>
+        <div class="kpi">
+          <div class="kpi-icon" style="background:var(--mint)">◎</div>
+          <div><strong id="kpi-interviews">0</strong><span>Interviews</span></div>
+        </div>
+        <div class="kpi-sep"></div>
+        <div class="kpi">
+          <div class="kpi-icon" style="background:#ffefc0">★</div>
+          <div><strong id="kpi-offers">0</strong><span>Offers</span></div>
+        </div>
+      </div>
+
+      <!-- Auto-apply card -->
+      <div class="aa-card-header">
+        <h4>Auto-Apply</h4>
+        <div style="display:flex;gap:6px;align-items:center">
+          <span style="font-size:10px;color:var(--muted)">Cap <strong id="aa-cap">0</strong> · Min <strong id="aa-min">0</strong>%</span>
+          <button class="aa-stop-all" id="aa-stop-all">◼ Stop all</button>
+        </div>
+      </div>
+      <div id="aa-portals"></div>
+
+      <!-- Funnel -->
+      <div style="margin-top:14px">
+        <div class="overline" style="margin-bottom:8px">Application Funnel</div>
+        <div class="funnel-row"><span class="funnel-label">Applied</span><div class="funnel-bar-wrap"><div class="funnel-bar" id="fn-applied" style="width:100%;background:#638e71"></div></div><span class="funnel-val" id="fn-applied-n">0</span></div>
+        <div class="funnel-row"><span class="funnel-label">Interview</span><div class="funnel-bar-wrap"><div class="funnel-bar" id="fn-interview" style="width:0%;background:#7b6fd4"></div></div><span class="funnel-val" id="fn-interview-n">0</span></div>
+        <div class="funnel-row"><span class="funnel-label">Offer</span><div class="funnel-bar-wrap"><div class="funnel-bar" id="fn-offer" style="width:0%;background:#d9a94c"></div></div><span class="funnel-val" id="fn-offer-n">0</span></div>
+        <div class="funnel-row"><span class="funnel-label">Rejected</span><div class="funnel-bar-wrap"><div class="funnel-bar" id="fn-rejected" style="width:0%;background:#d96e61"></div></div><span class="funnel-val" id="fn-rejected-n">0</span></div>
+      </div>
+    </div>
+
+    <!-- ════ JOB MATCHES ════ -->
+    <div class="page" id="page-matches">
+      <div class="section-row">
+        <h4>Job Matches</h4>
+        <button class="btn-xs primary" id="btn-find-jobs">Refresh →</button>
+      </div>
+      <div id="match-list"><div class="empty-card">Click Refresh to load matches.</div></div>
+    </div>
+
+    <!-- ════ APPLICATIONS ════ -->
+    <div class="page" id="page-applications">
+      <div class="section-row">
+        <h4>Applications</h4>
+        <span id="app-total" style="font-size:10px;color:var(--muted)">0 total</span>
+      </div>
+      <div class="kanban" id="kanban-board"></div>
+    </div>
+
+    <!-- ════ RÉSUMÉ ════ -->
+    <div class="page" id="page-resume">
+      <div class="section-row">
+        <h4>My Résumé</h4>
+      </div>
+      <!-- Stored file panel -->
+      <div id="resume-stored-panel" style="display:none" class="prof-card" style="margin-bottom:10px">
+        <div style="display:flex;align-items:center;gap:10px">
+          <span style="font-size:22px;color:var(--green)">▤</span>
+          <div style="flex:1;min-width:0">
+            <div id="resume-stored-name" style="font:700 12px 'DM Sans';white-space:nowrap;overflow:hidden;text-overflow:ellipsis"></div>
+            <div id="resume-stored-meta" style="font-size:10px;color:var(--muted);margin-top:2px"></div>
+          </div>
+          <div style="display:flex;gap:5px">
+            <a id="resume-preview-btn" href="#" target="_blank" style="font:700 10px 'DM Sans';background:#e8f7d0;color:#3a7030;padding:5px 8px;border-radius:6px;text-decoration:none">👁 Preview</a>
+            <a id="resume-download-btn" href="#" style="font:700 10px 'DM Sans';background:var(--ink);color:#fff;padding:5px 8px;border-radius:6px;text-decoration:none">↓ Download</a>
+          </div>
+        </div>
+      </div>
+      <!-- Drop zone -->
+      <div class="resume-drop" id="resume-drop" style="border:2px dashed #d0d9d0;border-radius:10px;padding:20px;text-align:center;background:#f8faf7;cursor:pointer;margin-top:8px">
+        <div style="font-size:24px;color:var(--green);margin-bottom:6px">↑</div>
+        <p id="resume-drop-label" style="font:600 12px 'DM Sans';margin:0">Drop PDF / TXT here, or <label for="resume-file" style="color:var(--green);text-decoration:underline;cursor:pointer">browse</label></p>
+        <input type="file" id="resume-file" accept=".pdf,.txt" style="display:none" />
+        <p id="resume-status" style="font-size:10px;color:var(--muted);margin:5px 0 0">PDF or plain text · max 5 MB</p>
+      </div>
+    </div>
+
+    <!-- ════ PROFILE ════ -->
+    <div class="page" id="page-profile">
+      <div class="section-row">
+        <h4>Your Profile</h4>
+        <button class="btn-xs primary" id="prof-save-btn">Save →</button>
+      </div>
+
+      <div class="prof-card" style="margin-bottom:10px">
+        <div class="prof-section-title">Personal</div>
+        <div class="prof-field">
+          <label>Full name</label>
+          <input type="text" id="prof-name" placeholder="e.g. Aswin S." />
+        </div>
+      </div>
+
+      <div class="prof-card" style="margin-bottom:10px">
+        <div class="prof-section-title">Job Target</div>
+        <div class="prof-field">
+          <label>Target role</label>
+          <input type="text" id="prof-role" placeholder="e.g. Backend Engineer" />
+        </div>
+        <div class="prof-field">
+          <label>Skills <span style="font-weight:400;text-transform:none;font-size:9px">(Enter / comma to add)</span></label>
+          <div class="chip-row" id="skills-chips"></div>
+          <input type="text" class="chip-text-input" id="skills-input" placeholder="Type skill + Enter" list="skills-dl" />
+          <datalist id="skills-dl"></datalist>
+        </div>
+        <div class="prof-field">
+          <label>Cities</label>
+          <div class="chip-row" id="cities-chips"></div>
+          <input type="text" class="chip-text-input" id="cities-input" placeholder="Type city + Enter" list="cities-dl" />
+          <datalist id="cities-dl"></datalist>
+        </div>
+      </div>
+
+      <div class="prof-card" style="margin-bottom:10px">
+        <div class="prof-section-title">Auto-Apply Settings</div>
+        <label class="toggle-label" style="margin-bottom:10px">
+          <input type="checkbox" id="prof-autoapply" class="toggle-check" />
+          <span class="toggle-track"><span class="toggle-thumb"></span></span>
+          Enable auto-apply
+        </label>
+        <div class="prof-two-col">
+          <div class="prof-field"><label>Daily cap</label><input type="number" id="prof-dailycap" placeholder="50" /></div>
+          <div class="prof-field"><label>Min match %</label><input type="number" id="prof-minmatch" placeholder="75" /></div>
+        </div>
+      </div>
+
+      <div class="prof-card">
+        <div class="prof-section-title">Portal Credentials</div>
+        <div id="portal-creds"></div>
+      </div>
+    </div>
+
+    <!-- ════ ADMIN ════ -->
+    <div class="page" id="page-admin">
+      <div class="section-row">
+        <h4>Onboarded Users</h4>
+        <button class="btn-xs outline" id="btn-refresh-admin">Refresh</button>
+      </div>
+      <p style="font-size:11px;color:var(--muted);margin-bottom:10px">Total: <strong id="admin-count">0</strong></p>
+      <div id="admin-users"></div>
+    </div>
+
+  </div><!-- /pages -->
+</div>
+
+<!-- ── Login overlay ── -->
+<div id="login-wrap" class="login-wrap" style="display:none">
+  <div id="login-card" class="login-card">
+    <p class="overline">Sign In</p>
+    <h2>Welcome back</h2>
+    <label>Email <input type="email" id="login-email" placeholder="you@example.com" /></label>
+    <label>Password <input type="password" id="login-password" placeholder="••••••••" /></label>
+    <button class="btn-full btn-primary" id="login-submit">Sign in</button>
+    <button class="btn-full btn-outline" id="show-register" style="margin-top:6px;padding:9px;font:700 11px 'DM Sans';border-radius:7px;cursor:pointer;background:transparent;border:1px solid #889b8d;color:var(--ink)">Create account →</button>
+  </div>
+  <div id="register-card" class="login-card" style="display:none;width:360px">
+    <p class="overline">Create Account</p>
+    <h2>Join CareerPilot</h2>
+    <div class="reg-resume-zone" id="reg-zone">
+      <div style="font-size:22px;color:var(--green)">▤</div>
+      <p style="font:600 12px 'DM Sans';margin:0"><strong>Upload résumé to auto-fill</strong></p>
+      <button class="reg-resume-btn" id="reg-resume-pick">Choose PDF / TXT</button>
+      <input type="file" id="reg-resume-file" accept=".pdf,.txt" style="display:none" />
+      <p class="reg-resume-status" id="reg-resume-status"></p>
+    </div>
+    <div class="reg-divider"><span>or fill manually</span></div>
+    <label>Email <input type="email" id="reg-email" placeholder="you@example.com" /></label>
+    <label>Full name <input type="text" id="reg-name" placeholder="Your name" /></label>
+    <label>Role <input type="text" id="reg-role-reg" placeholder="e.g. Full Stack Developer" /></label>
+    <label>Password <input type="password" id="reg-password" placeholder="••••••••" /></label>
+    <label>Confirm <input type="password" id="reg-confirm" placeholder="••••••••" /></label>
+    <button class="btn-full btn-primary" id="register-submit">Create account</button>
+    <button class="btn-full btn-outline" id="show-login" style="margin-top:6px;padding:9px;font:700 11px 'DM Sans';border-radius:7px;cursor:pointer;background:transparent;border:1px solid #889b8d;color:var(--ink)">Back to sign in</button>
+  </div>
+</div>
+
+<div id="toast"></div>
+<script src="popup.js"></script>
+</body>
+</html>
