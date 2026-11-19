@@ -640,8 +640,17 @@ document.querySelectorAll('.side-nav a[data-page]').forEach(a => {
     e.preventDefault();
     const page = a.dataset.page;
 
+    // close mobile sidebar on any nav click
+    document.querySelector('.sidebar')?.classList.remove('open');
+    document.body.classList.remove('sidebar-open');
+
+    if (page === 'dashboard') {
+      showPage('dashboard');
+      loadDashboard();
+      return;
+    }
+
     if (page === 'profile' || page === 'resume') {
-      // both profile and resume navigate to the profile page
       try {
         const u = await api('/users/me');
         document.querySelector('#prof-name').value = u.name || '';
@@ -653,7 +662,6 @@ document.querySelectorAll('.side-nav a[data-page]').forEach(a => {
         document.querySelector('#prof-dailycap').value = s.dailyCap || 50;
         document.querySelector('#prof-minmatch').value = s.minMatch || 75;
         showPage('profile');
-        // scroll to resume section if that's what was clicked
         if (page === 'resume') {
           setTimeout(() => document.getElementById('resume-stored')?.closest('.prof-card')?.scrollIntoView({ behavior: 'smooth' }), 100);
         }
@@ -665,14 +673,12 @@ document.querySelectorAll('.side-nav a[data-page]').forEach(a => {
 
     if (page === 'matches') {
       showPage('matches');
-      // trigger a fresh match load on nav click
       document.querySelector('[data-action="find-jobs"]')?.click();
       return;
     }
 
     if (page === 'applications') {
       showPage('applications');
-      // re-render kanban with latest data
       loadDashboard();
       return;
     }
@@ -1138,13 +1144,6 @@ document.querySelector('.mobile-menu')?.addEventListener('click', () => {
     sidebar.classList.toggle('open');
     document.body.classList.toggle('sidebar-open');
   }
-});
-// close sidebar when a nav link is clicked on mobile
-document.querySelectorAll('.side-nav a').forEach(a => {
-  a.addEventListener('click', () => {
-    document.querySelector('.sidebar')?.classList.remove('open');
-    document.body.classList.remove('sidebar-open');
-  });
 });
 
 if (!getToken()) { const s = document.querySelector('.app-shell'); if (s) s.style.display = 'none'; }
