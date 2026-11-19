@@ -1,0 +1,30 @@
+/* Import Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap');
+
+/* Import all existing CareerPilot styles */
+@import './legacy.css';
+
+/* Angular router-outlet fix — make content fill properly */
+.content {
+  max-width: 1250px;
+  padding: 50px 48px 70px;
+  margin: auto;
+}
+
+/* Ensure app-shell works with Angular layout */
+app-root { display: block; }
+app-shell { display: block; }
+
+/* titlecase pipe display fix */
+.aa-portal-name { text-transform: capitalize; }
+
+/* routerLinkActive adds .active class automatically */
+.side-nav a.active,
+.side-nav a:hover {
+  background: #edf0eb;
+  color: var(--ink);
+}
+
+@media (max-width: 850px) {
+  .content { padding: 34px 20px; }
+}

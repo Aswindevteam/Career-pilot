@@ -1,0 +1,31 @@
+<div class="section-title">
+  <div><p class="overline">TOP PICKS</p><h2>Strongest matches</h2></div>
+  <button class="link-button" (click)="load()" [disabled]="loading()">{{ loading() ? 'Loading…' : 'Refresh →' }}</button>
+</div>
+
+@if (loading()) {
+  <div class="empty-card">Loading…</div>
+} @else if (!jobs().length) {
+  <div class="empty-card">No matches yet — set your skills and role in Profile first.</div>
+} @else {
+  <div class="match-list">
+    @for (j of jobs(); track j._id) {
+      <article class="job-card">
+        <div class="company-logo" [style.background]="logoColor(j.company)">{{ (j.company || '?')[0] }}</div>
+        <div class="job-info">
+          <div class="title-line">
+            <h3>{{ j.title }}</h3>
+            <span class="match-score">{{ j.matchScore || 0 }}% match</span>
+          </div>
+          <p>{{ j.company }} · {{ j.location }}</p>
+          <div class="tags">
+            @for (s of j.skills?.slice(0,5); track s) { <span>{{ s }}</span> }
+          </div>
+        </div>
+        @if (j.url) {
+          <a class="apply" [href]="j.url" target="_blank">View job ↗</a>
+        }
+      </article>
+    }
+  </div>
+}

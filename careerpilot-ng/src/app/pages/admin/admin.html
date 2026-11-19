@@ -1,0 +1,21 @@
+<div class="section-title">
+  <div><p class="overline">ADMIN</p><h2>Onboarded users</h2></div>
+  <button class="link-button" (click)="load()">Refresh</button>
+</div>
+
+@if (loading()) {
+  <p style="color:var(--muted);font-size:12px">Loading…</p>
+} @else if (error()) {
+  <p style="color:var(--muted);font-size:12px">{{ error() }}</p>
+} @else {
+  <p style="font-size:12px;margin-bottom:12px">Total users: <strong>{{ count() }}</strong></p>
+  <div class="admin-list">
+    @if (!users().length) { <p style="color:var(--muted);font-size:12px">No users yet.</p> }
+    @for (u of users(); track u._id) {
+      <div class="admin-row">
+        <span>{{ u.name || u.email }} <span style="color:var(--muted);font-size:11px">({{ u.email }})</span> @if (u.isAdmin) { <b style="color:#638e71;font-size:10px">admin</b> }</span>
+        <button (click)="deleteUser(u._id)">Delete</button>
+      </div>
+    }
+  </div>
+}

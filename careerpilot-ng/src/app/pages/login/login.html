@@ -1,0 +1,28 @@
+<div class="login-page">
+  @if (mode() === 'login') {
+    <div class="login-card">
+      <p class="overline">SIGN IN</p>
+      <h2>Welcome back</h2>
+      <label>Email <input type="email" [(ngModel)]="email" placeholder="you@example.com" /></label>
+      <label>Password <input type="password" [(ngModel)]="password" placeholder="••••••••" (keyup.enter)="submit()" /></label>
+      <button class="primary full" (click)="submit()" [disabled]="loading()">
+        {{ loading() ? 'Signing in…' : 'Sign in →' }}
+      </button>
+      <button class="outline full" style="margin-top:8px" (click)="setMode('register')">Create account →</button>
+    </div>
+  } @else {
+    <div class="login-card login-card--wide">
+      <p class="overline">CREATE ACCOUNT</p>
+      <h2>Join CareerPilot</h2>
+      <label>Email <input type="email" [(ngModel)]="email" placeholder="you@example.com" /></label>
+      <label>Full name <input type="text" [(ngModel)]="name" placeholder="Your name" /></label>
+      <label>Role <input type="text" [(ngModel)]="role" placeholder="e.g. Full Stack Developer" /></label>
+      <label>Password <input type="password" [(ngModel)]="password" placeholder="••••••••" /></label>
+      <label>Confirm <input type="password" [(ngModel)]="confirm" placeholder="••••••••" (keyup.enter)="submit()" /></label>
+      <button class="primary full" style="margin-top:8px" (click)="submit()" [disabled]="loading()">
+        {{ loading() ? 'Creating…' : 'Create account →' }}
+      </button>
+      <button class="outline full" style="margin-top:8px" (click)="setMode('login')">Back to sign in</button>
+    </div>
+  }
+</div>

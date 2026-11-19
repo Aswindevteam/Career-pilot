@@ -1,0 +1,32 @@
+<aside class="sidebar" [class.open]="open">
+  <a class="brand" routerLink="/dashboard" (click)="onNavClick()">
+    <span class="brand-mark">cp</span>
+    <span>CareerPilot</span>
+  </a>
+
+  <nav class="side-nav" aria-label="Main navigation">
+    @for (item of nav; track item.path) {
+      <a
+        [routerLink]="item.path"
+        routerLinkActive="active"
+        (click)="onNavClick()">
+        <i>{{ item.icon }}</i>
+        {{ item.label }}
+      </a>
+    }
+  </nav>
+
+  @if (user()) {
+  <div class="profile-card">
+    <div class="avatar">{{ avatarInitials }}</div>
+    <div>
+      <strong>{{ user()?.name || user()?.email }}</strong>
+      <small>Profile {{ completePct }}% complete</small>
+    </div>
+    <div class="progress"><span [style.width.%]="completePct"></span></div>
+    <button class="plain-button" routerLink="/profile" (click)="onNavClick()">Complete profile →</button>
+  </div>
+  }
+
+  <p class="free-note">Free for every job seeker.<br /><span>No subscription. Ever.</span></p>
+</aside>

@@ -1,0 +1,110 @@
+<div class="prof-header">
+  <div><p class="overline">SETTINGS</p><h1>Your profile</h1><p class="prof-sub">Keep this up to date for better job matches and faster auto-apply.</p></div>
+  <div class="prof-header-actions">
+    <button class="primary" (click)="save()" [disabled]="saving()">{{ saving() ? 'Saving…' : 'Save profile →' }}</button>
+  </div>
+</div>
+
+<div class="prof-body">
+
+  <!-- Col 1 -->
+  <div class="prof-col">
+
+    <!-- Personal -->
+    <div class="prof-card">
+      <p class="overline" style="margin:0 0 16px">PERSONAL INFO</p>
+      <div class="prof-field">
+        <label>Full name</label>
+        <input type="text" [(ngModel)]="name" placeholder="e.g. Aswin S." />
+      </div>
+    </div>
+
+    <!-- Job profiles -->
+    <div class="prof-card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+        <p class="overline" style="margin:0">JOB PROFILES</p>
+        <button class="jp-add-btn" (click)="addProfile()">+ Add profile</button>
+      </div>
+      <p class="prof-card-sub">Each profile has its own role, skills and cities. Mark one <strong>Active</strong> for auto-apply.</p>
+
+      @for (p of profiles; track p._id) {
+        <div class="jp-card" [class.jp-active]="p.isActive">
+          <div class="jp-card-header">
+            <input class="jp-label-input" [(ngModel)]="p.label" placeholder="Profile name" />
+            @if (p.isActive) { <span class="jp-active-badge">Active</span> }
+            <div class="jp-card-actions">
+              @if (!p.isActive) { <button class="jp-btn jp-btn-activate" (click)="setActive(p._id!)">Set active</button> }
+              <button class="jp-btn jp-btn-delete" (click)="deleteProfile(p._id!)">✕</button>
+            </div>
+          </div>
+          <div class="jp-fields">
+            <div class="jp-field">
+              <label>Target role</label>
+              <input type="text" [(ngModel)]="p.role" placeholder="e.g. Backend Engineer" />
+            </div>
+            <div class="jp-field">
+              <label>Skills</label>
+              <div class="chip-input">
+                @for (s of p.skills; track s) { <span class="chip">{{ s }}<button (click)="removeSkillChip(p,s)">×</button></span> }
+              </div>
+              <input class="jp-chip-input" placeholder="Type skill + Enter" list="skills-dl" #skillIn
+                (keydown)="onSkillKey($event, p, skillIn)"
+                (change)="addSkillChip(p, skillIn.value); skillIn.value=''" />
+              <datalist id="skills-dl">@for (s of SKILLS; track s) { <option [value]="s"></option> }</datalist>
+            </div>
+            <div class="jp-field">
+              <label>Cities</label>
+              <div class="chip-input">
+                @for (c of p.cities; track c) { <span class="chip">{{ c }}<button (click)="removeCityChip(p,c)">×</button></span> }
+              </div>
+              <input class="jp-chip-input" placeholder="Type city + Enter" list="cities-dl" #cityIn
+                (keydown)="onCityKey($event, p, cityIn)"
+                (change)="addCityChip(p, cityIn.value); cityIn.value=''" />
+              <datalist id="cities-dl">@for (c of CITIES; track c) { <option [value]="c"></option> }</datalist>
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+
+    <!-- Auto-apply settings -->
+    <div class="prof-card">
+      <p class="overline" style="margin:0 0 16px">AUTO-APPLY SETTINGS</p>
+      <label class="toggle-label">
+        <input type="checkbox" class="toggle-check" [(ngModel)]="autoApply" />
+        <span class="toggle-track"><span class="toggle-thumb"></span></span>
+        Enable auto-apply
+      </label>
+      <div class="prof-two-col" style="margin-top:16px">
+        <div class="prof-field"><label>Daily cap</label><input type="number" [(ngModel)]="dailyCap" /></div>
+        <div class="prof-field"><label>Min match %</label><input type="number" [(ngModel)]="minMatch" /></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Col 2 — Portal credentials -->
+  <div class="prof-col">
+    <div class="prof-card prof-card--full">
+      <p class="overline" style="margin:0 0 4px">JOB PORTAL CREDENTIALS</p>
+      <p class="prof-card-sub">Used by the auto-apply worker. Stored encrypted on your server.</p>
+      @for (p of PORTALS; track p) {
+        <div class="portal-row">
+          <div class="portal-row-header">
+            <input type="checkbox" [(ngModel)]="portals[p].checked" />
+            <span>{{ p | titlecase }}</span>
+          </div>
+          <div class="portal-row-fields">
+            <input type="email" [(ngModel)]="portals[p].email" placeholder="Email" />
+            <input type="password" [(ngModel)]="portals[p].password" placeholder="Password" />
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+
+</div>
+
+<div class="prof-footer">
+  <button class="primary" (click)="save()" [disabled]="saving()">{{ saving() ? 'Saving…' : 'Save profile →' }}</button>
+</div>

@@ -1,0 +1,116 @@
+<!-- Hero -->
+<div class="db-hero">
+  <div class="db-hero-left">
+    <p class="overline">{{ todayDate }}</p>
+    <h1 class="db-greeting">{{ greeting }}</h1>
+    <p class="db-sub">Here's your job-search momentum for today.</p>
+  </div>
+  <div class="db-hero-right">
+    <a class="primary" routerLink="/matches">Find new matches <span>→</span></a>
+    <button class="outline" (click)="startAll()">Start Auto-Apply <span>→</span></button>
+  </div>
+</div>
+
+<!-- KPI strip -->
+<div class="db-kpi-strip">
+  <div class="db-kpi"><span class="db-kpi-icon" style="background:var(--purple)">⌁</span><div><strong>0</strong><span>Matches</span></div></div>
+  <div class="db-kpi-sep"></div>
+  <div class="db-kpi"><span class="db-kpi-icon" style="background:var(--peach)">↗</span><div><strong>{{ applied }}</strong><span>Applied</span></div></div>
+  <div class="db-kpi-sep"></div>
+  <div class="db-kpi"><span class="db-kpi-icon" style="background:var(--mint)">◎</span><div><strong>{{ interviews }}</strong><span>Interviews</span></div></div>
+  <div class="db-kpi-sep"></div>
+  <div class="db-kpi"><span class="db-kpi-icon" style="background:#ffefc0">★</span><div><strong>{{ offers }}</strong><span>Offers</span></div></div>
+  <div class="db-kpi-sep"></div>
+  <div class="db-kpi"><span class="db-kpi-icon" style="background:#ffe0dc">✉</span><div><strong>0</strong><span>HR emails</span></div></div>
+</div>
+
+<!-- Main grid -->
+<div class="db-grid">
+
+  <!-- Funnel -->
+  <div class="db-card">
+    <div class="db-card-header"><div><p class="overline" style="margin:0">PIPELINE</p><h3>Application funnel</h3></div></div>
+    <div class="db-funnel">
+      <div class="db-funnel-row"><span class="db-funnel-label">Applied</span><div class="db-funnel-bar-wrap"><div class="db-funnel-bar" [style.width.%]="funnelPct(applied)" style="background:#638e71"></div></div><span class="db-funnel-val">{{ applied }}</span></div>
+      <div class="db-funnel-row"><span class="db-funnel-label">Interview</span><div class="db-funnel-bar-wrap"><div class="db-funnel-bar" [style.width.%]="funnelPct(interviews)" style="background:#7b6fd4"></div></div><span class="db-funnel-val">{{ interviews }}</span></div>
+      <div class="db-funnel-row"><span class="db-funnel-label">Offer</span><div class="db-funnel-bar-wrap"><div class="db-funnel-bar" [style.width.%]="funnelPct(offers)" style="background:#d9a94c"></div></div><span class="db-funnel-val">{{ offers }}</span></div>
+      <div class="db-funnel-row"><span class="db-funnel-label">Rejected</span><div class="db-funnel-bar-wrap"><div class="db-funnel-bar" [style.width.%]="funnelPct(rejected)" style="background:#d96e61"></div></div><span class="db-funnel-val">{{ rejected }}</span></div>
+    </div>
+  </div>
+
+  <!-- Portal breakdown -->
+  <div class="db-card">
+    <div class="db-card-header"><div><p class="overline" style="margin:0">PORTALS</p><h3>Applications by portal</h3></div></div>
+    <div class="db-portal-breakdown">
+      @if (!byPortal.length) { <p class="db-empty">No applications yet.</p> }
+      @for (row of byPortal; track row.portal) {
+        <div class="db-portal-row">
+          <span class="db-portal-name">{{ row.portal }}</span>
+          <div class="db-portal-bar-wrap"><div class="db-portal-bar" [style.width.%]="(row.count / portalMax) * 100"></div></div>
+          <span class="db-portal-val">{{ row.count }}</span>
+        </div>
+      }
+    </div>
+  </div>
+
+  <!-- Auto-apply -->
+  <div class="db-card">
+    <div class="db-card-header">
+      <div><p class="overline" style="margin:0">AUTO-APPLY</p><h3>Portals</h3></div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <span style="font-size:11px;color:var(--muted)">Cap <strong>{{ user()?.settings?.dailyCap || 0 }}</strong> · Min <strong>{{ user()?.settings?.minMatch || 0 }}</strong>%</span>
+        <button class="aa-stop-all-btn" (click)="stopAll()">◼ Stop all</button>
+      </div>
+    </div>
+    @if (!enabledPortals.length) {
+      <p class="aa-no-portal">No portals configured. <a routerLink="/profile">Set up portals →</a></p>
+    }
+    @for (portal of enabledPortals; track portal) {
+      <div class="aa-portal-row">
+        <div class="aa-portal-header">
+          <div>
+            <div class="aa-portal-name">
+              <span [class]="portalDotClass(portal)"></span>
+              {{ portal | titlecase }}
+            </div>
+            <div class="aa-portal-status">{{ portalStatus(portal) }}</div>
+          </div>
+          <div class="aa-portal-actions">
+            @if (isPortalRunning(portal)) {
+              <button class="aa-stop-btn" (click)="stopPortal(portal)">◼ Stop</button>
+            } @else {
+              <button class="aa-start-btn" (click)="startPortal(portal)">▶ Start</button>
+            }
+          </div>
+        </div>
+        @if (sessions()[portal]?.screenshotUrl) {
+          <img [src]="sessions()[portal]!.screenshotUrl" class="aa-thumb" alt="live view" style="margin-top:8px;border-radius:8px;width:100%" />
+        }
+      </div>
+    }
+  </div>
+
+</div><!-- /db-grid -->
+
+<!-- Kanban tracker -->
+<section class="tracker" style="margin-top:32px">
+  <div class="section-title">
+    <div><p class="overline">APPLICATION TRACKER</p><h2>Keep every opportunity moving</h2></div>
+    <a class="link-button" routerLink="/applications">View all →</a>
+  </div>
+  <div class="kanban">
+    @for (col of kanbanCols; track col.status) {
+      <div>
+        <p class="column-title">{{ col.status | uppercase }} <span>{{ col.items.length }}</span></p>
+        @if (!col.items.length) { <div class="empty-card">No items</div> }
+        @for (a of col.items; track a._id) {
+          <article class="track-card" [class.interview]="col.status === 'interview'">
+            <b>{{ a.job?.title || 'Job' }}</b>
+            <p>{{ a.job?.company || '' }}</p>
+            <small>{{ a.portal || '' }} · {{ formatDate(a.appliedAt) }}</small>
+          </article>
+        }
+      </div>
+    }
+  </div>
+</section>

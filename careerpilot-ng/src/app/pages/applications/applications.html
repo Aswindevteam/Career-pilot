@@ -1,0 +1,24 @@
+<div class="section-title">
+  <div><p class="overline">APPLICATION TRACKER</p><h2>Keep every opportunity moving</h2></div>
+  <span style="font-size:12px;color:var(--muted)">{{ apps().length }} total</span>
+</div>
+
+@if (loading()) {
+  <div class="empty-card">Loading…</div>
+} @else {
+  <div class="kanban">
+    @for (status of statuses; track status) {
+      <div>
+        <p class="column-title">{{ status | uppercase }} <span>{{ col(status).length }}</span></p>
+        @if (!col(status).length) { <div class="empty-card">No items</div> }
+        @for (a of col(status); track a._id) {
+          <article class="track-card" [class.interview]="status === 'interview'">
+            <b>{{ a.job?.title || 'Job' }}</b>
+            <p>{{ a.job?.company || '' }}</p>
+            <small>{{ a.portal || '' }} · {{ formatDate(a.appliedAt) }}</small>
+          </article>
+        }
+      </div>
+    }
+  </div>
+}

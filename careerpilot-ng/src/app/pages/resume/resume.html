@@ -1,0 +1,38 @@
+<div class="prof-header">
+  <div><p class="overline">RÉSUMÉ</p><h1>My Résumé</h1><p class="prof-sub">Your CV is stored on the server — download, preview, or replace it any time.</p></div>
+</div>
+
+<div style="max-width:600px;padding:28px 0">
+
+  @if (resumeFile?.storedName) {
+    <div class="resume-stored" style="margin-bottom:16px">
+      <div class="resume-stored-icon">▤</div>
+      <div class="resume-stored-info">
+        <span class="resume-stored-name">{{ resumeFile?.originalName || resumeFile?.storedName }}</span>
+        <span class="resume-stored-meta">{{ resumeFile?.size ? (resumeFile!.size / 1024 | number:'1.0-0') + ' KB' : '' }}</span>
+      </div>
+      <div class="resume-stored-actions">
+        <a class="rs-btn rs-preview" [href]="previewUrl" target="_blank">👁 Preview</a>
+        <a class="rs-btn rs-download" [href]="downloadUrl">↓ Download</a>
+      </div>
+    </div>
+  }
+
+  <div class="resume-drop"
+       [class.drag-over]="dragOver()"
+       (click)="fileInput.click()"
+       (dragover)="$event.preventDefault(); dragOver.set(true)"
+       (dragleave)="dragOver.set(false)"
+       (drop)="onDrop($event)">
+    <div class="resume-drop-icon">↑</div>
+    <p class="resume-drop-label">
+      {{ resumeFile?.storedName ? 'Replace with a new file, or' : 'Drop PDF / TXT here, or' }}
+      <span class="resume-browse" (click)="$event.stopPropagation(); fileInput.click()">browse</span>
+    </p>
+    <p class="resume-drop-hint" [style.color]="status().startsWith('✓') ? '#638e71' : ''">
+      {{ status() || 'PDF or plain text · max 5 MB' }}
+    </p>
+  </div>
+  <input #fileInput type="file" accept=".pdf,.txt" style="display:none" (change)="onFileChange($event)" />
+
+</div>
