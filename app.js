@@ -602,34 +602,36 @@ function wireNavBtns() {
 }
 
 // ── Page routing ──
-const PAGES = { dashboard: '#dashboard', profile: '#profile-page' };
+// Web app has two real "pages": dashboard (with scrollable sections) and profile.
+// matches / applications / admin / resume all live as sections inside dashboard.
 function showPage(name) {
-  const dashboard = document.getElementById('dashboard');
+  const dashboard   = document.getElementById('dashboard');
   const profilePage = document.getElementById('profile-page');
-  const navLinks = document.querySelectorAll('.side-nav a[data-page]');
+  const navLinks    = document.querySelectorAll('.side-nav a[data-page]');
 
-  // hide all page sections
-  if (dashboard) dashboard.style.display = 'none';
+  // hide both top-level pages
+  if (dashboard)   dashboard.style.display   = 'none';
   if (profilePage) profilePage.style.display = 'none';
 
-  // show target
   if (name === 'profile') {
     if (profilePage) profilePage.style.display = '';
   } else {
+    // show dashboard and scroll to the right section
     if (dashboard) dashboard.style.display = '';
-    // scroll to anchor within dashboard if needed
-    const target = document.getElementById(name);
-    if (target && name !== 'dashboard') target.scrollIntoView({ behavior: 'smooth' });
+    if (name !== 'dashboard') {
+      // resume has no standalone section — scroll to profile-page equivalent in dashboard
+      const anchorId = name === 'resume' ? 'profile-page' : name;
+      const target = document.getElementById(anchorId);
+      if (target) setTimeout(() => target.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
+    }
   }
 
-  // update active nav link
+  // active nav highlight — single clean pass
   navLinks.forEach(a => {
-    a.classList.toggle('active', a.dataset.page === name ||
-      (name !== 'profile' && a.dataset.page === 'dashboard' && !['profile'].includes(name) && name === 'dashboard'));
-  });
-  navLinks.forEach(a => {
-    if (a.dataset.page === name) a.classList.add('active');
-    else a.classList.remove('active');
+    const isActive = a.dataset.page === name ||
+      // sub-sections of dashboard highlight their own link
+      (name !== 'profile' && name !== 'dashboard' && a.dataset.page === name);
+    a.classList.toggle('active', isActive);
   });
 }
 
@@ -637,9 +639,11 @@ document.querySelectorAll('.side-nav a[data-page]').forEach(a => {
   a.addEventListener('click', async e => {
     e.preventDefault();
     const page = a.dataset.page;
-    if (page === 'profile') {
+
+    if (page === 'profile' || page === 'resume') {
+      // both profile and resume navigate to the profile page
       try {
-        const u = await api('/users/me'); // backend migrates legacy fields automatically
+        const u = await api('/users/me');
         document.querySelector('#prof-name').value = u.name || '';
         renderJobProfiles(u.jobProfiles || []);
         renderPortalCreds(u.portals || {});
@@ -648,8 +652,37 @@ document.querySelectorAll('.side-nav a[data-page]').forEach(a => {
         document.querySelector('#prof-autoapply').checked = !!s.autoApply;
         document.querySelector('#prof-dailycap').value = s.dailyCap || 50;
         document.querySelector('#prof-minmatch').value = s.minMatch || 75;
-      } catch(e) {}
+        showPage('profile');
+        // scroll to resume section if that's what was clicked
+        if (page === 'resume') {
+          setTimeout(() => document.getElementById('resume-stored')?.closest('.prof-card')?.scrollIntoView({ behavior: 'smooth' }), 100);
+        }
+      } catch(err) {
+        showToast('Failed to load profile — is the backend running?');
+      }
+      return;
     }
+
+    if (page === 'matches') {
+      showPage('matches');
+      // trigger a fresh match load on nav click
+      document.querySelector('[data-action="find-jobs"]')?.click();
+      return;
+    }
+
+    if (page === 'applications') {
+      showPage('applications');
+      // re-render kanban with latest data
+      loadDashboard();
+      return;
+    }
+
+    if (page === 'admin') {
+      showPage('admin');
+      loadAdmin();
+      return;
+    }
+
     showPage(page);
   });
 });
@@ -1098,6 +1131,22 @@ document.querySelector('#logout-btn')?.addEventListener('click', () => {
   showToast('Logged out.');
 });
 
+// ── Mobile menu toggle ──
+document.querySelector('.mobile-menu')?.addEventListener('click', () => {
+  const sidebar = document.querySelector('.sidebar');
+  if (sidebar) {
+    sidebar.classList.toggle('open');
+    document.body.classList.toggle('sidebar-open');
+  }
+});
+// close sidebar when a nav link is clicked on mobile
+document.querySelectorAll('.side-nav a').forEach(a => {
+  a.addEventListener('click', () => {
+    document.querySelector('.sidebar')?.classList.remove('open');
+    document.body.classList.remove('sidebar-open');
+  });
+});
+
 if (!getToken()) { const s = document.querySelector('.app-shell'); if (s) s.style.display = 'none'; }
 else { const lp = document.querySelector('#login-page'); if (lp) lp.style.display = 'none'; const rp = document.querySelector('#register-page'); if (rp) rp.style.display = 'none'; }
 async function loadAdmin() {
@@ -1109,6 +1158,7 @@ async function loadAdmin() {
     if (navCount) navCount.textContent = data.count;
     const list = document.getElementById('admin-users');
     if (list) {
+      if (!data.users?.length) { list.innerHTML = '<p style="color:var(--muted);font-size:12px">No users yet.</p>'; return; }
       list.innerHTML = data.users.map(u => '<div class="admin-row"><span>' + (u.name||u.email) + ' (' + u.email + ')</span><button class="del-user" data-id="' + u._id + '">Delete</button></div>').join('');
       list.querySelectorAll('.del-user').forEach(b => b.addEventListener('click', async () => {
         if (!confirm('Delete this user?')) return;
@@ -1116,7 +1166,10 @@ async function loadAdmin() {
         catch(e){ showToast(e.message); }
       }));
     }
-  } catch(e) { /* not admin */ }
+  } catch(e) {
+    const list = document.getElementById('admin-users');
+    if (list) list.innerHTML = '<p style="color:var(--muted);font-size:12px">Admin access required.</p>';
+  }
 }
 document.querySelector('#refresh-admin')?.addEventListener('click', loadAdmin);
 
