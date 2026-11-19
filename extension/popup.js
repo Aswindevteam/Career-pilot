@@ -339,14 +339,11 @@ document.getElementById('aa-stop-all')?.addEventListener('click', async () => {
   const btn = document.getElementById('aa-stop-all');
   if (btn) { btn.disabled = true; btn.textContent = 'Stopping…'; }
   try {
-    const r = await apiFetch('/automation/stop', { method: 'POST' });
-    Object.keys(_aaIntervals).forEach(p => {
-      clearInterval(_aaIntervals[p]); delete _aaIntervals[p];
-      setPortalRunning(p, false); setPortalStatus(p, 'Stopped');
-      const dot = document.getElementById(`aa-dot-${p}`);
-      if (dot) dot.className = 'aa-dot';
-    });
-    showToast(`Stopped ${r.count || 'all'} portals`);
+    // stop all locally tracked sessions
+    for (const portal of Object.keys(_aaSessions)) {
+      await stopPortalApply(portal, false);
+    }
+    showToast('All portals stopped');
   } catch(e) { showToast('Stop failed: ' + e.message); }
   finally { if (btn) { btn.disabled = false; btn.textContent = '◼ Stop all'; } }
 });
@@ -355,9 +352,11 @@ document.getElementById('aa-stop-all')?.addEventListener('click', async () => {
 async function loadMatches() {
   const list = document.getElementById('match-list'); if (!list) return;
   list.innerHTML = '<div class="empty-card">Loading…</div>';
+  const btn = document.getElementById('btn-find-jobs');
+  if (btn) { btn.disabled = true; btn.textContent = 'Loading…'; }
   try {
     const jobs = await apiFetch('/jobs');
-    if (!jobs.length) { list.innerHTML = '<div class="empty-card">No matches yet.</div>'; return; }
+    if (!jobs.length) { list.innerHTML = '<div class="empty-card">No matches yet — your profile needs a role and skills set first.</div>'; return; }
     list.innerHTML = jobs.map(j => `
       <div class="job-card">
         <div class="co-logo" style="background:${logoColor(j.company)}">${(j.company||'?')[0].toUpperCase()}</div>
@@ -370,7 +369,11 @@ async function loadMatches() {
       </div>
     `).join('');
     showToast(jobs.length + ' matches loaded');
-  } catch(e) { list.innerHTML = '<div class="empty-card">Failed to load.</div>'; }
+  } catch(e) {
+    list.innerHTML = `<div class="empty-card">Failed to load — is the backend running?</div>`;
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = 'Refresh →'; }
+  }
 }
 document.getElementById('btn-find-jobs')?.addEventListener('click', loadMatches);
 
@@ -383,10 +386,15 @@ function logoColor(co) {
 // ── Applications ──
 async function loadApplications() {
   const board = document.getElementById('kanban-board'); if (!board) return;
-  board.innerHTML = '<div style="font-size:11px;color:var(--muted)">Loading…</div>';
+  board.innerHTML = '<div style="font-size:11px;color:var(--muted);grid-column:span 2">Loading…</div>';
+  const totalEl = document.getElementById('app-total');
   try {
     const apps = await apiFetch('/applications');
-    document.getElementById('app-total').textContent = apps.length + ' total';
+    if (totalEl) totalEl.textContent = apps.length + ' total';
+    if (!apps.length) {
+      board.innerHTML = '<div class="empty-card" style="grid-column:span 2">No applications yet — start auto-apply or add one manually.</div>';
+      return;
+    }
     const cols = { applied: [], interview: [], offer: [], saved: [] };
     apps.forEach(a => {
       const key = cols[a.status] ? a.status : 'applied';
@@ -406,7 +414,9 @@ async function loadApplications() {
         );
       board.appendChild(col);
     });
-  } catch(e) { board.innerHTML = '<div class="empty-card">Failed to load.</div>'; }
+  } catch(e) {
+    board.innerHTML = `<div class="empty-card" style="grid-column:span 2">Failed to load — is the backend running?</div>`;
+  }
 }
 
 // ── Résumé ──
@@ -473,11 +483,12 @@ async function loadResume() {
 // ── Profile ──
 async function loadProfile() {
   if (!getToken()) return;
+  const saveBtn = document.getElementById('prof-save-btn');
+  if (saveBtn) { saveBtn.disabled = true; saveBtn.textContent = 'Loading…'; }
   try {
     const u = await apiFetch('/users/me');
     const nameEl = document.getElementById('prof-name'); if (nameEl) nameEl.value = u.name || '';
 
-    // active profile
     const profiles = u.jobProfiles || [];
     const active = profiles.find(p => p.isActive) || profiles[0];
     if (active) {
@@ -487,12 +498,16 @@ async function loadProfile() {
     }
 
     const s = u.settings || {};
-    const aaEl = document.getElementById('prof-autoapply'); if (aaEl) aaEl.checked = !!s.autoApply;
-    const capEl = document.getElementById('prof-dailycap'); if (capEl) capEl.value = s.dailyCap || 50;
-    const minEl = document.getElementById('prof-minmatch'); if (minEl) minEl.value = s.minMatch || 75;
+    const aaEl  = document.getElementById('prof-autoapply'); if (aaEl)  aaEl.checked  = !!s.autoApply;
+    const capEl = document.getElementById('prof-dailycap');  if (capEl) capEl.value   = s.dailyCap || 50;
+    const minEl = document.getElementById('prof-minmatch');  if (minEl) minEl.value   = s.minMatch || 75;
 
     renderPortalCreds(u.portals || {});
-  } catch(e) {}
+  } catch(e) {
+    showToast('Failed to load profile — is the backend running?');
+  } finally {
+    if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = 'Save →'; }
+  }
 }
 
 function renderPortalCreds(portals) {
@@ -550,12 +565,17 @@ document.getElementById('prof-save-btn')?.addEventListener('click', async () => 
 // ── Admin ──
 async function loadAdmin() {
   if (!getToken()) return;
+  const list = document.getElementById('admin-users');
+  const countEl = document.getElementById('admin-count');
+  if (list) list.innerHTML = '<div style="font-size:11px;color:var(--muted)">Loading…</div>';
   try {
     const data = await apiFetch('/admin/users');
-    const countEl = document.getElementById('admin-count');
     if (countEl) countEl.textContent = data.count;
-    const list = document.getElementById('admin-users');
     if (list) {
+      if (!data.users?.length) {
+        list.innerHTML = '<div class="empty-card">No users yet.</div>';
+        return;
+      }
       list.innerHTML = (data.users || []).map(u =>
         `<div class="admin-row">
           <span>${u.name || u.email} <span style="color:var(--muted);font-size:9px">(${u.email})</span></span>
@@ -568,7 +588,10 @@ async function loadAdmin() {
         catch(e) { showToast(e.message); }
       }));
     }
-  } catch(e) { /* not admin — silently ignore */ }
+  } catch(e) {
+    if (countEl) countEl.textContent = '—';
+    if (list) list.innerHTML = '<div class="empty-card">Not available — admin access required.</div>';
+  }
 }
 document.getElementById('btn-refresh-admin')?.addEventListener('click', loadAdmin);
 
